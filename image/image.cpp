@@ -7,17 +7,18 @@
 image::image(QWidget *parent)
     : QMainWindow(parent)
 {
-    setWindowTitle (QStringLiteral("Image Processing"));
+    setWindowTitle(QStringLiteral("Image Processing"));
     central = new QWidget();
-    QHBoxLayout *mainLayout = new QHBoxLayout (central);
+    QHBoxLayout *mainLayout = new QHBoxLayout(central);
     imgWin = new QLabel();
-    QPixmap      *initPixmap = new QPixmap(300,200);
-    initPixmap->fill(QColor(255,255,255));
-    imgWin->resize (300,200);
+    QPixmap *initPixmap = new QPixmap(300, 200);
+    initPixmap->fill(QColor(255, 255, 255));
+    imgWin->resize(300, 200);
     imgWin->setScaledContents(true);
-    imgWin->setPixmap (*initPixmap);
+    imgWin->setPixmap(*initPixmap);
     mainLayout->addWidget(imgWin);
-    setCentralWidget ( central );
+    setCentralWidget(central);
+
     createActions();
     createMenus();
     createToolBars();
@@ -25,51 +26,68 @@ image::image(QWidget *parent)
 
 image::~image()
 {
-    // 析構函數的實現
+    // Destructor
 }
 
 void image::createActions()
 {
-    openFileAction = new QAction (QStringLiteral("開啟檔案&O"),this);
-    openFileAction->setShortcut (tr("Ctrl+0"));
-    openFileAction->setStatusTip (QStringLiteral("開啟影像檔案"));
-    connect (openFileAction, SIGNAL (triggered()),this, SLOT (showOpenFile()));
+    // 開啟檔案動作
+    openFileAction = new QAction(QStringLiteral("開啟檔案&O"), this);
+    openFileAction->setShortcut(tr("Ctrl+0"));
+    openFileAction->setStatusTip(QStringLiteral("開啟影像檔案"));
+    connect(openFileAction, &QAction::triggered, this, &image::showOpenFile);
 
-    exitAction = new QAction (QStringLiteral("結束&Q"),this);
+    // 結束程式動作
+    exitAction = new QAction(QStringLiteral("結束&Q"), this);
     exitAction->setShortcut(tr("Ctrl+Q"));
-    exitAction->setStatusTip (QStringLiteral("退出程式"));
-    connect (exitAction, SIGNAL (triggered()),this, SLOT (Close()));
+    exitAction->setStatusTip(QStringLiteral("退出程式"));
+    connect(exitAction, &QAction::triggered, this, &QMainWindow::close);
+
+    // 放大動作
+    zoomInAction = new QAction(QStringLiteral("放大&Z"), this);
+    zoomInAction->setShortcut(tr("Ctrl+Z"));
+    zoomInAction->setStatusTip(QStringLiteral("放大影像"));
+    connect(zoomInAction, &QAction::triggered, this, &image::zoomIn);
+
+    // 縮小動作
+    zoomOutAction = new QAction(QStringLiteral("縮小&X"), this);
+    zoomOutAction->setShortcut(tr("Ctrl+X"));
+    zoomOutAction->setStatusTip(QStringLiteral("縮小影像"));
+    connect(zoomOutAction, &QAction::triggered, this, &image::zoomOut);
 }
 
 void image::createMenus()
 {
-    fileMenu = menuBar ()->addMenu (QStringLiteral("檔案&F"));
+    fileMenu = menuBar()->addMenu(QStringLiteral("檔案&F"));
     fileMenu->addAction(openFileAction);
-    fileMenu->addAction (exitAction);
+    fileMenu->addAction(exitAction);
+    fileMenu->addAction(zoomInAction);  // 放大功能加入菜單
+    fileMenu->addAction(zoomOutAction); // 縮小功能加入菜單
 }
 
 void image::createToolBars()
 {
     fileTool = addToolBar("file");
     fileTool->addAction(openFileAction);
+    fileTool->addAction(zoomInAction);  // 放大功能加入工具列
+    fileTool->addAction(zoomOutAction); // 縮小功能加入工具列
 }
 
 void image::loadFile(QString filename)
 {
-    qDebug() <<QString("file name: %1").arg(filename);
-    QByteArray ba=filename.toLatin1();
+    qDebug() << QString("file name: %1").arg(filename);
+    QByteArray ba = filename.toLatin1();
     printf("FN:%s\n", (char *) ba.data());
     img.load(filename);
-    imgWin->setPixmap (QPixmap:: fromImage(img));
+    imgWin->setPixmap(QPixmap::fromImage(img));
 }
 
 void image::showOpenFile()
 {
-    filename = QFileDialog::getOpenFileName (this,
+    filename = QFileDialog::getOpenFileName(this,
                                             QStringLiteral("Open image"),
                                             tr("."),
-                                            "bmp(*.bmp);;png(*.png)"
-                                            ";;Jpeg(*.jpg)");
+                                            "bmp(*.bmp);;png(*.png);;Jpeg(*.jpg)");
     if (!filename.isEmpty())
     {
         if (img.isNull())
@@ -82,5 +100,35 @@ void image::showOpenFile()
             newIPWin->show();
             newIPWin->loadFile(filename);
         }
+    }
+}
+
+void image::zoomIn()
+{
+    if (!img.isNull()) {
+        // 放大圖片，放大比例為 1.5（可以根據需要調整）
+        QImage scaledImage = img.scaled(img.size() * 1.5, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+        // 顯示放大圖片
+        image *newWindow = new image();  // 新建一個新視窗來顯示放大的圖片
+        newWindow->show();
+        newWindow->loadFile(filename);  // 使用原始檔案來載入
+        newWindow->img = scaledImage;  // 更新為放大的圖片
+        newWindow->imgWin->setPixmap(QPixmap::fromImage(scaledImage));
+    }
+}
+
+void image::zoomOut()
+{
+    if (!img.isNull()) {
+        // 縮小圖片，縮小比例為 0.75（可以根據需要調整）
+        QImage scaledImage = img.scaled(img.size() * 0.75, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+        // 顯示縮小圖片
+        image *newWindow = new image();  // 新建一個新視窗來顯示縮小的圖片
+        newWindow->show();
+        newWindow->loadFile(filename);  // 使用原始檔案來載入
+        newWindow->img = scaledImage;  // 更新為縮小的圖片
+        newWindow->imgWin->setPixmap(QPixmap::fromImage(scaledImage));
     }
 }
