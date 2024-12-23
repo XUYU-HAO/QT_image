@@ -3,6 +3,7 @@
 #include <QMenuBar>
 #include <QFileDialog>
 #include <QDebug>
+#include "imagetransform.h"
 
 image::image(QWidget *parent)
     : QMainWindow(parent)
@@ -12,6 +13,7 @@ image::image(QWidget *parent)
     QHBoxLayout *mainLayout = new QHBoxLayout(central);
     imgWin = new QLabel();
     QPixmap *initPixmap = new QPixmap(300, 200);
+    gWin =new imagetransform();
     initPixmap->fill(QColor(255, 255, 255));
     imgWin->resize(300, 200);
     imgWin->setScaledContents(true);
@@ -43,6 +45,12 @@ void image::createActions()
     exitAction->setStatusTip(QStringLiteral("退出程式"));
     connect(exitAction, &QAction::triggered, this, &QMainWindow::close);
 
+    geometryAction = new QAction (QStringLiteral("幾何轉換"),this);
+    geometryAction->setShortcut (tr("Ctrl+G"));
+    geometryAction->setStatusTip (QStringLiteral("影像幾何轉換"));
+    connect (geometryAction, SIGNAL (triggered()),this, SLOT (showGeometryTransform()));
+    connect (exitAction, SIGNAL (triggered()),gWin, SLOT (close()));
+
     // 放大動作
     zoomInAction = new QAction(QStringLiteral("放大&Z"), this);
     zoomInAction->setShortcut(tr("Ctrl+Z"));
@@ -60,6 +68,7 @@ void image::createMenus()
 {
     fileMenu = menuBar()->addMenu(QStringLiteral("檔案&F"));
     fileMenu->addAction(openFileAction);
+    fileMenu->addAction(geometryAction);
     fileMenu->addAction(exitAction);
     fileMenu->addAction(zoomInAction);  // 放大功能加入菜單
     fileMenu->addAction(zoomOutAction); // 縮小功能加入菜單
@@ -69,6 +78,7 @@ void image::createToolBars()
 {
     fileTool = addToolBar("file");
     fileTool->addAction(openFileAction);
+    fileTool->addAction(geometryAction);
     fileTool->addAction(zoomInAction);  // 放大功能加入工具列
     fileTool->addAction(zoomOutAction); // 縮小功能加入工具列
 }
@@ -101,6 +111,15 @@ void image::showOpenFile()
             newIPWin->loadFile(filename);
         }
     }
+}
+
+void image::showGeometryTransform()
+
+{
+    if (!img.isNull())
+    gWin->srcImg = img;
+    gWin->inWin->setPixmap (QPixmap::fromImage (gWin->srcImg));
+    gWin->show();
 }
 
 void image::zoomIn()
