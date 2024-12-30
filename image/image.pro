@@ -11,11 +11,13 @@ CONFIG += c++17
 SOURCES += \
     imagetransform.cpp \
     main.cpp \
-    image.cpp
+    image.cpp \
+    mouseevent.cpp
 
 HEADERS += \
     image.h \
-    imagetransform.h
+    imagetransform.h \
+    mouseevent.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

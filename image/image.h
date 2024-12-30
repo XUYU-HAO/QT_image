@@ -2,45 +2,56 @@
 #define IMAGE_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include <QImage>
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
-#include <QImage>
-#include <QLabel>
-#include <QPixmap>
 #include "imagetransform.h"
+#include "mouseevent.h"
 
 class image : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    image(QWidget *parent = 0);
+    explicit image(QWidget *parent = nullptr);
     ~image();
+
+private slots:
+    void showOpenFile();
+    void showGeometryTransform();
+    void showMouseEvent();
+    void zoomIn();
+    void zoomOut();
+
+private:
     void createActions();
     void createMenus();
     void createToolBars();
     void loadFile(QString filename);
 
-private slots:
-    void showOpenFile();
-    void zoomIn();  // 放大功能
-    void zoomOut();  // 縮小功能
-    void showGeometryTransform();
-
-private:
-    imagetransform  *gWin;
+    // 界面元件
     QWidget *central;
-    QMenu *fileMenu;
-    QToolBar *fileTool;
+    QLabel *imgWin;
     QImage img;
     QString filename;
-    QLabel *imgWin;
+
+    // 幾何轉換視窗和滑鼠事件視窗
+    imagetransform *gWin;
+    MouseEvent *mouseWin;
+
+    // 動作
     QAction *openFileAction;
     QAction *exitAction;
-    QAction *zoomInAction;  // 放大動作
-    QAction *zoomOutAction;  // 縮小動作
     QAction *geometryAction;
+    QAction *mouseEventAction;
+    QAction *zoomInAction;
+    QAction *zoomOutAction;
+
+    // 菜單和工具列
+    QMenu *fileMenu;
+    QToolBar *fileTool;
 };
 
 #endif // IMAGE_H
